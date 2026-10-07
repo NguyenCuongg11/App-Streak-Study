@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<title>Streak Study</title>
+</head>
+<body>
+
+<!-- ⚙️ Settings (góc trên trái) -->
+<div class="settings" id="settings">
+  <button class="gear-btn" id="gearBtn" aria-label="Cài đặt" aria-expanded="false">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
+
+  <div class="menu" id="menu" hidden>
+    <button class="menu-item menu-btn" id="modeBtn" type="button">
+      <span id="modeLabel">Change time (time now)</span>
+    </button>
+    <label class="menu-item">
+      <span>Always on top</span>
+      <input type="checkbox" id="optOnTop">
+    </label>
+    <label class="menu-item">
+      <span>Background light</span>
+      <input type="checkbox" id="optLight">
+    </label>
+  </div>
+</div>
+
+<!-- 🔥 Streak (góc trên phải) -->
+<div class="streak" id="streak" title="Số ngày liên tiếp hoàn thành Pomodoro">
+  <span class="flame">🔥</span>
+  <span id="streakCount">0</span>
+</div>
+
+<div class="wrap">
+  <div class="title">Streak Study</div>
+  <div class="time" id="display">1:00:00</div>
+
+  <div class="bar-wrap">
+    <div class="bar-fill" id="progress"></div>
+    <div class="bar-text" id="percent">0%</div>
+  </div>
+
+  <div class="controls">
+    <div class="time-fields" id="timeFields">
+      <div class="field">
+        <label for="hours">Giờ</label>
+        <input id="hours" type="number" value="1" min="0" class="time-input">
+      </div>
+      <span class="colon">:</span>
+      <div class="field">
+        <label for="minutes">Phút</label>
+        <input id="minutes" type="number" value="0" min="0" class="time-input">
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="startPauseBtn">Start</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const display = document.getElementById("display");
+const minutesInput = document.getElementById("minutes");
+const hoursInput = document.getElementById("hours");
+const startPauseBtn = document.getElementById("startPauseBtn");
+const resetBtn = document.getElementById("resetBtn");
+const progress = document.getElementById("progress");
+const percent = document.getElementById("percent");
+
+let totalSeconds = 3600;
+let remaining = totalSeconds;
+let timer = null;
+let running = false;
+let endTime = null;
+let mode = "countdown"; // "countdown" | "clock"
+
+/* ---------- Lưu / đọc cài đặt ---------- */
+function save(k, v) { try { localStorage.setItem(k, v); } catch (_) {} }
+function load(k, f) {
+  try { const v = localStorage.getItem(k); return v === null ? f : v; }
+  catch (_) { return f; }
+}
+
+/* ---------- Countdown ---------- */
+function formatTime(s) {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60).toString().padStart(2, "0");
+  const ss = (s % 60).toString().padStart(2, "0");
+  return `${h}:${m}:${ss}`;
+}
+
+function updateDisplay() {
+  if (mode !== "countdown") return; // đang ở Time now thì không đè lên đồng hồ
+  display.textContent = formatTime(remaining);
+  const pct = ((totalSeconds - remaining) / totalSeconds) * 100;
+  progress.style.width = pct + "%";
+  percent.textContent = Math.floor(pct) + "%";
+  progress.style.background = pct > 90 ? "#ef4444" : "var(--bar-fill)";
+}
+
+function tick() {
+  remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+  updateDisplay();
+  if (remaining <= 0) {
+    pause();
+    bumpStreak(); // muốn chặt hơn: if (totalSeconds >= 15 * 60) bumpStreak();
+    playSound();
+    alert("Hết giờ! Nghỉ giải lao thôi 😄");
+  }
+}
+
+function start() {
+  if (running) return;
+  running = true;
+  startPauseBtn.textContent = "Pause";
+  endTime = Date.now() + remaining * 1000;
+  timer = setInterval(tick, 200);
+}
+
+function pause() {
+  running = false;
+  startPauseBtn.textContent = "Start";
+  clearInterval(timer);
+}
+
+function reset() {
+  pause();
+  updateTimeFromInputs();
+}
+
+function updateTimeFromInputs() {
+  pause();
+  const h = Math.max(0, parseInt(hoursInput.value) || 0);
+  const m = Math.max(0, parseInt(minutesInput.value) || 0);
+  hoursInput.value = h;
+  minutesInput.value = m;
+  totalSeconds = h * 3600 + m * 60;
+  if (totalSeconds <= 0) totalSeconds = 60;
+  remaining = totalSeconds;
+  updateDisplay();
+}
+
+[hoursInput, minutesInput].forEach((input) => {
+  input.addEventListener("input", updateTimeFromInputs);
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      updateTimeFromInputs();
+      start();
+      input.blur();
+    }
+  });
+});
+
+startPauseBtn.onclick = () => (running ? pause() : start());
+resetBtn.onclick = reset;
+
+window.addEventListener("keydown", (e) => {
+  if (mode === "countdown" &&
+      (e.code === "Space" || e.key === " ") &&
+      document.activeElement.tagName !== "INPUT" &&
+      document.activeElement.tagName !== "BUTTON") {
+    e.preventDefault();
+    running ? pause() : start();
+  }
+  if (e.key === "Escape") closeMenu();
+});
+
+function playSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  osc.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + 0.2);
+}
+
+/* ---------- Menu cài đặt ---------- */
+const gearBtn = document.getElementById("gearBtn");
+const menu = document.getElementById("menu");
+const settings = document.getElementById("settings");
+const optOnTop = document.getElementById("optOnTop");
+const optLight = document.getElementById("optLight");
+
+function openMenu() { menu.hidden = false; gearBtn.setAttribute("aria-expanded", "true"); }
+function closeMenu() { menu.hidden = true; gearBtn.setAttribute("aria-expanded", "false"); }
+gearBtn.onclick = (e) => { e.stopPropagation(); menu.hidden ? openMenu() : closeMenu(); };
+document.addEventListener("click", (e) => { if (!settings.contains(e.target)) closeMenu(); });
+
+/* Always on top */
+function setOnTop(on) {
+  optOnTop.checked = on;
+  save("onTop", on);
+  if (window.electronAPI) window.electronAPI.setAlwaysOnTop(on);
+}
+optOnTop.onchange = () => setOnTop(optOnTop.checked);
+
+/* Light / Dark */
+function setTheme(m) {
+  document.body.classList.toggle("light", m === "light");
+  optLight.checked = m === "light";
+  save("theme", m);
+}
+optLight.onchange = () => setTheme(optLight.checked ? "light" : "dark");
+
+/* ---------- Chế độ: Countdown / Time now ---------- */
+let clockTimer = null;
+const modeBtn = document.getElementById("modeBtn");
+const modeLabel = document.getElementById("modeLabel");
+const titleEl = document.querySelector(".title");
+
+function renderClock() {
+  const d = new Date();
+  display.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()]
+    .map((n) => String(n).padStart(2, "0")).join(":");
+}
+
+function setMode(m) {
+  mode = m;
+  const clock = m === "clock";
+  document.body.classList.toggle("clock-mode", clock);
+  titleEl.textContent = clock ? "Time now" : "Streak Study";
+  modeLabel.textContent = clock ? "Change countdown" : "Change time now";
+  clearInterval(clockTimer);
+  if (clock) {
+    renderClock();
+    clockTimer = setInterval(renderClock, 1000);
+  } else {
+    updateDisplay();
+  }
+  save("mode", m);
+}
+
+modeBtn.onclick = () => {
+  setMode(mode === "clock" ? "countdown" : "clock");
+  closeMenu();
+};
+
+/* ---------- Streak 🔥 ---------- */
+const streakCount = document.getElementById("streakCount");
+
+function dateKey(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function loadStreak() {
+  let count = parseInt(load("streak", "0")) || 0;
+  const last = load("streakLast", "");
+  if (last) {
+    const gap = Math.round((new Date(dateKey()) - new Date(last)) / 86400000);
+    if (gap > 1) { count = 0; save("streak", 0); } // bỏ lỡ ≥ 1 ngày → reset
+  }
+  streakCount.textContent = count;
+}
+
+function bumpStreak() {
+  const today = dateKey();
+  if (load("streakLast", "") === today) return; // hôm nay tính rồi
+  const count = (parseInt(load("streak", "0")) || 0) + 1;
+  save("streak", count);
+  save("streakLast", today);
+  streakCount.textContent = count;
+}
+
+/* ---------- Khởi tạo ---------- */
+setTheme(load("theme", "dark"));
+setOnTop(load("onTop", "false") === "true");
+loadStreak();
+setMode(load("mode", "countdown"));
+updateDisplay();
+</script>
+</body>
+</html>
