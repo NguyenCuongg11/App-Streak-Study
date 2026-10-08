@@ -112,7 +112,7 @@ function tick() {
   updateDisplay();
   if (remaining <= 0) {
     pause();
-    bumpStreak(); // muốn chặt hơn: if (totalSeconds >= 15 * 60) bumpStreak();
+    if (totalSeconds >= 25 * 60) bumpStreak();
     playSound();
     alert("Hết giờ! Nghỉ giải lao thôi 😄");
   }
