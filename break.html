@@ -76,7 +76,7 @@ const resetBtn = document.getElementById("resetBtn");
 const progress = document.getElementById("progress");
 const percent = document.getElementById("percent");
 
-let totalSeconds = 3600;
+let totalSeconds = 1500;
 let remaining = totalSeconds;
 let timer = null;
 let running = false;
@@ -274,7 +274,7 @@ setTheme(load("theme", "dark"));
 setOnTop(load("onTop", "false") === "true");
 loadStreak();
 setMode(load("mode", "countdown"));
-updateDisplay();
+updateTimeFromInputs();
 </script>
 </body>
 </html>
