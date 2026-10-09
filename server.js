@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
 });
 
 // 5. Khởi động Server
-const PORT = 3000;
+const PORT = 2000;
 app.listen(PORT, () => {
     console.log(`Countdown đã ONLINE tại Port: ${PORT}`);
     console.log(`Đang chờ đợi IP...`);

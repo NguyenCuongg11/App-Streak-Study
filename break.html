@@ -32,6 +32,20 @@
   </div>
 </div>
 
+<div class="top-right">
+  <div class="download-wrap" id="downloadWrap">
+    <button class="download-btn" id="downloadBtn" type="button" aria-expanded="false">⬇ Download app</button>
+    <div class="download-pop" id="downloadPop" hidden>
+      <p class="download-desc">
+        Bản app có thể sử dụng nhiều tính năng hơn web (vd: always on top) 
+        Giúp giữ đồng hồ kh ẩn khi học tập ở tab khác.
+        Trong tương lai mình sẽ phát triển thêm nhiều tình năng nữa
+        Cám ơn đã cài và sử dụng.
+      </p>
+      <a class="download-go" id="downloadGo" href="https://drive.usercontent.google.com/download?id=11Uxx-V8BeFY2eLjoxRvEq4iEssJ_bxox&export=download&authuser=0" download>Download app</a>
+    </div>
+  </div>
+</div>
 <!-- 🔥 Streak (góc trên phải) -->
 <div class="streak" id="streak" title="Số ngày liên tiếp hoàn thành Pomodoro">
   <span class="flame">🔥</span>
@@ -276,5 +290,6 @@ loadStreak();
 setMode(load("mode", "countdown"));
 updateTimeFromInputs();
 </script>
+<script src="scripts.js"></script>
 </body>
 </html>

@@ -35,11 +35,13 @@ justify-content:center;
 align-items:center;
 text-align:center;
 min-height: 100vh;
+padding: 0 20px;
 }
 .wrap{
 width:100%;
 max-width:650px;
 padding:20px;
+margin: 0 auto;
 }
 .title{
 font-size:24px;
@@ -123,7 +125,6 @@ border-radius:6px;
 font-size:16px;
 box-sizing: border-box;
 }
-/* ✅ FIX ĐỒNG BỘ CHIỀU CAO */
 .time-input{
 height: 34px !important;
 width:55px;
@@ -251,6 +252,57 @@ body.clock-mode .bar-wrap,
 body.clock-mode .controls{
     display: none;
 }
+
+.download-wrap{ position: fixed; 
+    top: 16px; 
+    right: 95px;
+    z-index: 10;
+}
+button.download-btn{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding:0 14px;
+    border-radius: 999px;
+    font-size: bold;
+    font-weight: bold;
+    white-space: nowrap;
+}
+.download-pop{
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 250px;
+    max-width: calc(100vw - 32px);
+    padding: 12px;
+    background: var(--menu-bg);
+    border: 1px solid var(--menu-border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0,.25);
+    text-align: left;
+    animation: menu-in .15s ease-out;
+}
+.download-pop[hidden]{ display: none;}
+.download-desc{
+    margin: 0 0 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--fg);
+    opacity: .55;
+}
+.download-go{
+    display: block;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+}
+.download-go:hover{ opacity: .9;}
 
 @media (prefers-reduced-motion: reduce){
 .menu,.gear-btn{animation: none; transition: none;}
